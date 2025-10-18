@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Logs from './logs';
+import Summary from './summary';
 
 function Views() {
     const [timeRange, setTimeRange] = useState('Last 24 hours');
@@ -10,13 +11,9 @@ function Views() {
         '1h': 'Last hour',
         '6h': 'Last 6 hours',
         '24h': 'Last 24 hours',
-        '7d': 'Last 7 days',
-        '30d': 'Last 30 days',
       };
       setTimeRange(rangeLabels[range] || range);
-    } else {
-      setTimeRange(`${range.start} to ${range.end}`);
-    }
+    };
   };
 
   return (
@@ -79,6 +76,9 @@ function Views() {
                 Monitoring activity at your front door. Motion detection and person recognition enabled.
               </p>
             </div>
+
+            {/* Event Summary */}
+            <Summary timeRange={timeRange} />
         </div>
 
           {/* Right side - Logs panel */}
