@@ -1,11 +1,6 @@
+import Views from './components/views'
 function App() {
-  return (
-    <>
-      <p className="font-bold">
-        Hello DubHacks!
-      </p>
-    </>
-  )
+  return <Views />
 }
 
 export default App
