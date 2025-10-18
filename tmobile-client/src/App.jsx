@@ -1,13 +1,7 @@
-// import { useState } from 'react'
+import CameraView from './components/CameraView'
 
 function App() {
-  return (
-    <>
-      <p className="font-bold">
-        Hello DubHacks!
-      </p>
-    </>
-  )
+  return <CameraView />
 }
 
 export default App
