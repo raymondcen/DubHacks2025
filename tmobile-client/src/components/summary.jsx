@@ -1,81 +1,24 @@
 import { useState, useEffect } from "react";
+import { initWebSocket, subscribe } from "../context/connection";
 
 function Summary({ timeRange }) {
   const [events, setEvents] = useState([]);
-
   const [expandedEventId, setExpandedEventId] = useState(null);
   const toggleEventDetails = (eventId) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
-  // const getEventIcon = (type) => {
-  //   switch (type) {
-  //     case "motion":
-  //       return (
-  //         <svg
-  //           className="w-5 h-5"
-  //           fill="none"
-  //           stroke="currentColor"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <path
-  //             strokeLinecap="round"
-  //             strokeLinejoin="round"
-  //             strokeWidth={2}
-  //             d="M13 10V3L4 14h7v7l9-11h-7z"
-  //           />
-  //         </svg>
-  //       );
-  //     case "person":
-  //       return (
-  //         <svg
-  //           className="w-5 h-5"
-  //           fill="none"
-  //           stroke="currentColor"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <path
-  //             strokeLinecap="round"
-  //             strokeLinejoin="round"
-  //             strokeWidth={2}
-  //             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-  //           />
-  //         </svg>
-  //       );
-  //     case "package":
-  //       return (
-  //         <svg
-  //           className="w-5 h-5"
-  //           fill="none"
-  //           stroke="currentColor"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <path
-  //             strokeLinecap="round"
-  //             strokeLinejoin="round"
-  //             strokeWidth={2}
-  //             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-  //           />
-  //         </svg>
-  //       );
-  //     default:
-  //       return (
-  //         <svg
-  //           className="w-5 h-5"
-  //           fill="none"
-  //           stroke="currentColor"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <path
-  //             strokeLinecap="round"
-  //             strokeLinejoin="round"
-  //             strokeWidth={2}
-  //             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-  //           />
-  //         </svg>
-  //       );
-  //   }
-  // };
+  useEffect( () => {
+    initWebSocket();
+
+    const unsubscribe = subscribe("event", (payload) => {
+      console.log(payload);
+      setEvents( (prev) => [...prev, payload]);
+    });
+    return () => {
+      unsubscribe();
+    }
+  }, []);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
@@ -142,13 +85,9 @@ function Summary({ timeRange }) {
                 >
                   {/* Event Header */}
                   <div className="flex items-start gap-3 p-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {/* {getEventIcon(event.type)} */}
-                      <p>TODO</p>
-                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{event.description}</p>
-                      <p className="text-xs mt-1 opacity-75">{event.time}</p>
+                      <p className="text-sm font-medium">{event.message}</p>
+                      <p className="text-xs mt-1 opacity-75">{event.timestamp}</p>
                     </div>
                     <button
                       onClick={() => toggleEventDetails(event.id)}
@@ -200,18 +139,6 @@ function Summary({ timeRange }) {
                             </span>
                           </div>
                         </div>
-
-                        {/* Raspberry Pi Output */}
-                        {/* <div>
-                          <h4 className="text-xs font-semibold opacity-75 mb-2">
-                            Raspberry Pi Output
-                          </h4>
-                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                            <p className="text-xs text-gray-700 font-mono break-all">
-                              {JSON.stringify(event.rawData)}
-                            </p>
-                          </div>
-                        </div> */}
                       </div>
                     </div>
                   )}

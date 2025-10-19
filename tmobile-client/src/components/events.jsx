@@ -16,7 +16,7 @@ function Events() {
     return () => {
       unsubscribe();
     }
-  });
+  }, []);
 
   return (
     <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
