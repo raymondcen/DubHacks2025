@@ -18,7 +18,7 @@ function Summary({ timeRange }) {
     return () => {
       unsubscribe();
     }
-  });
+  }, []);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
