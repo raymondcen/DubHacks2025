@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Logs from '../components/logs';
 import Summary from '../components/summary';
 import Timeline from '../components/timeline';
+import Livestream from '../components/livestream'
 
 function Dashboard() {
     const [timeRange, setTimeRange] = useState('24h');
@@ -44,7 +45,12 @@ function Dashboard() {
             <div className="mb-6">
               <Timeline onTimeRangeChange={handleTimeRangeChange} />
             </div>
-            
+
+            {/* Video player */}
+            <div className="mb-4">
+              <Livestream />
+            </div>
+
             {/* Video info section */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
