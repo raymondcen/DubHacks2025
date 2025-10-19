@@ -5,7 +5,7 @@ function Events() {
   const [events, setEvents] = useState([]);
 
   useEffect( () => {
-    initWebSocket();
+    initWebSocket("192.168.50.126");
 
     const unsubscribe = subscribe("event", (payload) => {
       if (payload) {
@@ -42,7 +42,7 @@ function Events() {
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-900 break-words">
-                    {event.message}
+                    {event.label}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     {event.timestamp}
