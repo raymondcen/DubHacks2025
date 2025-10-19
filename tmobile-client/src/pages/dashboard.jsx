@@ -74,9 +74,9 @@ function Dashboard() {
 
   useEffect(() => {
     // Simulate api fetching events
-    setEvents(testEvents);
+    // setEvents(testEvents);
 
-    // initWebSocket();
+    initWebSocket();
 
     // const unsubscribe = ( "event", (payload)  => {
     //   console.log("Received event: ", payload);
