@@ -6,84 +6,30 @@ import Timeline from "../components/timeline";
 import Livestream from "../components/livestream";
 import logo from "../assets/file.svg";
 
-const testEvents = [
-  {
-    id: 1,
-    timestamp: "2025-10-18 14:30:22",
-    message: "Camera connection established",
-    category: "system",
-  },
-  {
-    id: 2,
-    timestamp: "2025-10-18 14:30:45",
-    message: "Motion detection enabled",
-    category: "detection",
-  },
-  {
-    id: 3,
-    timestamp: "2025-10-18 14:32:10",
-    message: "Low light conditions detected",
-    category: "camera",
-  },
-  {
-    id: 4,
-    timestamp: "2025-10-18 14:45:33",
-    message: "Person detected at entrance",
-    category: "detection",
-  },
-  {
-    id: 5,
-    timestamp: "2025-10-18 15:15:22",
-    message: "Package delivery recorded",
-    category: "detection",
-  },
-  {
-    id: 6,
-    timestamp: "2025-10-18 15:20:44",
-    message: "Network connectivity issue",
-    category: "system",
-  },
-  {
-    id: 7,
-    timestamp: "2025-10-18 15:21:05",
-    message: "Connection restored",
-    category: "system",
-  },
-  {
-    id: 8,
-    timestamp: "2025-10-18 16:20:15",
-    message: "Motion detected in driveway",
-    category: "detection",
-  },
-  {
-    id: 9,
-    timestamp: "2025-10-18 16:45:30",
-    message: "Night mode activated",
-    category: "camera",
-  },
-  {
-    id: 10,
-    timestamp: "2025-10-18 17:00:12",
-    message: "Recording saved to cloud",
-    category: "storage",
-  },
-];
-
 function Dashboard() {
   const [timeRange, setTimeRange] = useState("24h");
   const [events, setEvents] = useState([]);
+  const [frames, setFrames] = useState([]);
 
   useEffect(() => {
     initWebSocket();
 
-    const unsubscribe = ( "event", (payload)  => {
-      console.log("Received event: ", payload);
-      setEvents( (prev) => [...prev, payload] );
+    const unsubscribeEvents = subscribe("event", (payload) => {
+      if (payload) {
+        console.log("Received event: ", payload);
+        setEvents((prev) => [...prev, payload]);
+      }
+    });
+    const unsubscribeFrames = subscribe("frame", (image) => {
+      if (image) {
+        setFrames((prev) => [...prev.slice(-10), image]);
+      }
     });
     return () => {
-      unsubscribe();
+      unsubscribeEvents();
+      unsubscribeFrames();
     };
-  });
+  }, []);
 
   const handleTimeRangeChange = (range) => {
     if (typeof range === "string") {
@@ -124,7 +70,7 @@ function Dashboard() {
 
             {/* Video player */}
             <div className="mb-4">
-              <Livestream />
+              <Livestream frame={frames[frames.length - 1]} />
             </div>
 
             {/* Video info section */}
@@ -195,13 +141,16 @@ function Dashboard() {
             </div>
 
             {/* Event Summary */}
-            <Summary timeRange={timeRange} />
+            <Summary
+              timeRange={timeRange}
+              events={events.length == 0 ? [] : events}
+            />
           </div>
 
           {/* Right side - Events panel */}
           <div className="w-full" style={{ maxWidth: "30%" }}>
             <div className="sticky top-24">
-              <Events events={events} />
+              <Events events={events.length == 0 ? [] : events} />
             </div>
           </div>
         </div>

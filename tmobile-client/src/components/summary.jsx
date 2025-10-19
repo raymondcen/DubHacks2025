@@ -1,162 +1,79 @@
 import { useState, useEffect } from "react";
-import { initWebSocket, subscribe } from "../context/connection";
-import { notifyEvent } from "../utils/notifications";
 
-const testSummary = [
-  {
-    id: 1,
-    type: "motion",
-    time: "2:30 PM",
-    description: "Motion detected at front door",
-    severity: "low",
-    rawData: {
-      eventType: "motion",
-      timestamp: "2025-10-18 14:30:00",
-      confidence: 0.85,
-    },
-  },
-  {
-    id: 2,
-    type: "person",
-    time: "2:45 PM",
-    description: "Person detected",
-    severity: "medium",
-    rawData: {
-      eventType: "person",
-      timestamp: "2025-10-18 14:45:00",
-      confidence: 0.92,
-    },
-  },
-  {
-    id: 3,
-    type: "package",
-    time: "3:15 PM",
-    description: "Package delivery detected",
-    severity: "medium",
-    rawData: {
-      eventType: "package",
-      timestamp: "2025-10-18 15:15:00",
-      confidence: 0.88,
-    },
-  },
-  {
-    id: 4,
-    type: "motion",
-    time: "4:20 PM",
-    description: "Motion detected near driveway",
-    severity: "low",
-    rawData: {
-      eventType: "motion",
-      timestamp: "2025-10-18 16:20:00",
-      confidence: 0.78,
-    },
-  },
-];
-
-function Summary({ timeRange }) {
-  const [events, setEvents] = useState(testSummary);
+function Summary({ timeRange, events }) {
   const [expandedEventId, setExpandedEventId] = useState(null);
-
-  useEffect(() => {
-    initWebSocket();
-    const unsubscribe = subscribe("event", (payload) => {
-      // Add new event to the beginning of the list
-      setEvents((prevEvents) => {
-        const newEvent = {
-          id: Date.now(),
-          type: payload.eventType || "motion",
-          time: new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-          }),
-          description:
-            payload.description || payload.message || "Event detected",
-          severity: payload.severity || "low",
-          rawData: payload, // Store the full Raspberry Pi output
-        };
-
-        // Send SMS notification for medium/high severity events
-        notifyEvent(newEvent);
-
-        return [newEvent, ...prevEvents];
-      });
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const toggleEventDetails = (eventId) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
-  const getEventIcon = (type) => {
-    switch (type) {
-      case "motion":
-        return (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-        );
-      case "person":
-        return (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        );
-      case "package":
-        return (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            />
-          </svg>
-        );
-      default:
-        return (
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
-    }
-  };
+  // const getEventIcon = (type) => {
+  //   switch (type) {
+  //     case "motion":
+  //       return (
+  //         <svg
+  //           className="w-5 h-5"
+  //           fill="none"
+  //           stroke="currentColor"
+  //           viewBox="0 0 24 24"
+  //         >
+  //           <path
+  //             strokeLinecap="round"
+  //             strokeLinejoin="round"
+  //             strokeWidth={2}
+  //             d="M13 10V3L4 14h7v7l9-11h-7z"
+  //           />
+  //         </svg>
+  //       );
+  //     case "person":
+  //       return (
+  //         <svg
+  //           className="w-5 h-5"
+  //           fill="none"
+  //           stroke="currentColor"
+  //           viewBox="0 0 24 24"
+  //         >
+  //           <path
+  //             strokeLinecap="round"
+  //             strokeLinejoin="round"
+  //             strokeWidth={2}
+  //             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+  //           />
+  //         </svg>
+  //       );
+  //     case "package":
+  //       return (
+  //         <svg
+  //           className="w-5 h-5"
+  //           fill="none"
+  //           stroke="currentColor"
+  //           viewBox="0 0 24 24"
+  //         >
+  //           <path
+  //             strokeLinecap="round"
+  //             strokeLinejoin="round"
+  //             strokeWidth={2}
+  //             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+  //           />
+  //         </svg>
+  //       );
+  //     default:
+  //       return (
+  //         <svg
+  //           className="w-5 h-5"
+  //           fill="none"
+  //           stroke="currentColor"
+  //           viewBox="0 0 24 24"
+  //         >
+  //           <path
+  //             strokeLinecap="round"
+  //             strokeLinejoin="round"
+  //             strokeWidth={2}
+  //             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+  //           />
+  //         </svg>
+  //       );
+  //   }
+  // };
 
   const getSeverityColor = (severity) => {
     switch (severity) {
@@ -209,7 +126,12 @@ function Summary({ timeRange }) {
           <div className="space-y-3">
             {events.map((event) => {
               const isExpanded = expandedEventId === event.id;
-              return (
+              const isEmpty = events.length == 0;
+              return { isEmpty } ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No events to display</p>
+                </div>
+              ) : (
                 <div
                   key={event.id}
                   className={`rounded-lg border ${getSeverityColor(
@@ -219,7 +141,8 @@ function Summary({ timeRange }) {
                   {/* Event Header */}
                   <div className="flex items-start gap-3 p-3">
                     <div className="flex-shrink-0 mt-0.5">
-                      {getEventIcon(event.type)}
+                      {/* {getEventIcon(event.type)} */}
+                      <p>TODO</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{event.description}</p>
@@ -277,7 +200,7 @@ function Summary({ timeRange }) {
                         </div>
 
                         {/* Raspberry Pi Output */}
-                        <div>
+                        {/* <div>
                           <h4 className="text-xs font-semibold opacity-75 mb-2">
                             Raspberry Pi Output
                           </h4>
@@ -286,7 +209,7 @@ function Summary({ timeRange }) {
                               {JSON.stringify(event.rawData)}
                             </p>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   )}

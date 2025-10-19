@@ -24,7 +24,7 @@ export function initWebSocket(PiAddr) {
     ServerAddr,
     {
       transports: ["websocket"],
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 3,
       timeout: ConnectionTimeout_ms,
       reconnectionDelay: ReconnectionDelay_ms
     }
@@ -35,6 +35,7 @@ export function initWebSocket(PiAddr) {
   });
   socket.on("connect", () => {
     console.log(`[Client]: Connected ${socket.id}`);
+    socket.emit("clientReady", { client: socket.id })
     notifyStatus({ "connected": true, "message": "Connected to Raspberry Pi" });
   });
   socket.on("disconnect", () => {
