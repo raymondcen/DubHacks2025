@@ -19,21 +19,16 @@ export function initWebSocket(url = `ws:${PiUrl}:${Port}/ws`) {
     socket.onclose = () => console.log("Disconnected");
 
     socket.onmessage = (msg) => {
-    //   try {
-    //     const payload = JSON.parse(msg.data);
+      try {
+        const payload = JSON.parse(msg.data);
 
-    //     // Dispatch to listeners by type
-    //     if (payload.type && listeners[payload.type]) {
-    //       listeners[payload.type].forEach((cb) => cb(payload));
-    //     }
-    //   }
-    //   catch (err) {
-    //     console.error("Failed to parse WebSocket message:", err);
-    //   }
-      const payload = JSON.stringify(msg.data);
-      
-      if (payload) {
-        console.log(payload);
+        // Dispatch to listeners by type
+        if (payload.type && listeners[payload.type]) {
+          listeners[payload.type].forEach((cb) => cb(payload));
+        }
+      }
+      catch (err) {
+        console.error("Failed to parse WebSocket message:", err);
       }
     };
   }
