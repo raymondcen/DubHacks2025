@@ -1,15 +1,45 @@
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
+import { initWebSocket, subscribe } from '../context/connection';
+import { notifyEvent } from '../utils/notifications';
 
 const testSummary = [
-    { id: 1, type: 'motion', time: '2:30 PM', description: 'Motion detected at front door', severity: 'low' },
-    { id: 2, type: 'person', time: '2:45 PM', description: 'Person detected', severity: 'medium' },
-    { id: 3, type: 'package', time: '3:15 PM', description: 'Package delivery detected', severity: 'medium' },
-    { id: 4, type: 'motion', time: '4:20 PM', description: 'Motion detected near driveway', severity: 'low' },
+    { id: 1, type: 'motion', time: '2:30 PM', description: 'Motion detected at front door', severity: 'low', rawData: { eventType: 'motion', timestamp: '2025-10-18 14:30:00', confidence: 0.85 } },
+    { id: 2, type: 'person', time: '2:45 PM', description: 'Person detected', severity: 'medium', rawData: { eventType: 'person', timestamp: '2025-10-18 14:45:00', confidence: 0.92 } },
+    { id: 3, type: 'package', time: '3:15 PM', description: 'Package delivery detected', severity: 'medium', rawData: { eventType: 'package', timestamp: '2025-10-18 15:15:00', confidence: 0.88 } },
+    { id: 4, type: 'motion', time: '4:20 PM', description: 'Motion detected near driveway', severity: 'low', rawData: { eventType: 'motion', timestamp: '2025-10-18 16:20:00', confidence: 0.78 } },
 ];
 
 function Summary({ timeRange }) {
-    const events = testSummary;
+    const [events, setEvents] = useState(testSummary);
+    const [expandedEventId, setExpandedEventId] = useState(null);
+
+    useEffect(() => {
+        initWebSocket();
+        const unsubscribe = subscribe('event', (payload) => {
+            // Add new event to the beginning of the list
+            setEvents((prevEvents) => {
+                const newEvent = {
+                    id: Date.now(),
+                    type: payload.eventType || 'motion',
+                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    description: payload.description || payload.message || 'Event detected',
+                    severity: payload.severity || 'low',
+                    rawData: payload // Store the full Raspberry Pi output
+                };
+
+                // Send SMS notification for medium/high severity events
+                notifyEvent(newEvent);
+
+                return [newEvent, ...prevEvents];
+            });
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const toggleEventDetails = (eventId) => {
+        setExpandedEventId(expandedEventId === eventId ? null : eventId);
+    };
 
     const getEventIcon = (type) => {
         switch (type) {
@@ -54,6 +84,7 @@ function Summary({ timeRange }) {
     };
     
     return (
+        <>
         <div className="mt-6 bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -80,26 +111,75 @@ function Summary({ timeRange }) {
 
         <div className="p-4">
             <div className="space-y-3">
-            {events.map((event) => (
+            {events.map((event) => {
+                const isExpanded = expandedEventId === event.id;
+                return (
                 <div
                 key={event.id}
-                className={`flex items-start gap-3 p-3 rounded-lg border ${getSeverityColor(event.severity)}`}
+                className={`rounded-lg border ${getSeverityColor(event.severity)} overflow-hidden transition-all`}
                 >
-                <div className="flex-shrink-0 mt-0.5">
-                    {getEventIcon(event.type)}
+                {/* Event Header */}
+                <div className="flex items-start gap-3 p-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                        {getEventIcon(event.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{event.description}</p>
+                        <p className="text-xs mt-1 opacity-75">{event.time}</p>
+                    </div>
+                    <button
+                        onClick={() => toggleEventDetails(event.id)}
+                        className="flex-shrink-0 text-xs font-medium hover:underline flex items-center gap-1"
+                    >
+                        {isExpanded ? 'Hide' : 'View'}
+                        <svg
+                            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{event.description}</p>
-                    <p className="text-xs mt-1 opacity-75">{event.time}</p>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                    <div className="border-t border-current border-opacity-20 bg-white bg-opacity-50 p-4">
+                        <div className="space-y-3">
+                            {/* Event Metadata */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="text-xs font-semibold opacity-75 mb-1">Event Type</h4>
+                                    <p className="text-sm font-medium capitalize">{event.type}</p>
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-semibold opacity-75 mb-1">Severity</h4>
+                                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getSeverityColor(event.severity)}`}>
+                                        {event.severity.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Raspberry Pi Output */}
+                            <div>
+                                <h4 className="text-xs font-semibold opacity-75 mb-2">Raspberry Pi Output</h4>
+                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <p className="text-xs text-gray-700 font-mono break-all">
+{JSON.stringify(event.rawData)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 </div>
-                <button className="flex-shrink-0 text-xs font-medium hover:underline">
-                    View
-                </button>
-                </div>
-            ))}
+                );
+            })}
             </div>
         </div>
         </div>
+        </>
     );
 }
 
