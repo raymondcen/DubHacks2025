@@ -72,21 +72,48 @@ const testEvents = [
 function Dashboard() {
   const [timeRange, setTimeRange] = useState("24h");
   const [events, setEvents] = useState([]);
+  const [currentFrame, setCurrentFrame] = useState(null);
+  const [frameBuffer, setFrameBuffer] = useState([]);
+  const MAX_BUFFER_SIZE = 20;
 
   useEffect(() => {
     // Simulate api fetching events
     // setEvents(testEvents);
 
-    initWebSocket();
+    initWebSocket('192.168.50.126');
 
-    // const unsubscribe = ( "event", (payload)  => {
-    //   console.log("Received event: ", payload);
-    //   setEvents( (prev) => [...prev, payload] );
-    // });
-    // return () => {
-    //   unsubscribe();
-    // };
-  });
+    // Subscribe to frame events from Raspberry Pi
+    const unsubscribeFrame = subscribe("frame", (frameData) => {
+      if (!frameData) return;
+
+      // Extract the image string from the frame data object
+      const imageData = frameData.image || frameData;
+
+      // Update the buffer - keep only the last 20 frames
+      setFrameBuffer((prev) => {
+        const newBuffer = [...prev, imageData];
+        // Keep only the last 20 frames
+        if (newBuffer.length > MAX_BUFFER_SIZE) {
+          return newBuffer.slice(newBuffer.length - MAX_BUFFER_SIZE);
+        }
+        return newBuffer;
+      });
+
+      // Update current frame
+      setCurrentFrame(imageData);
+    });
+
+    // Subscribe to event updates from Raspberry Pi
+    const unsubscribeEvent = subscribe("event", (payload) => {
+      console.log("Received event: ", payload);
+      setEvents((prev) => [...prev, payload]);
+    });
+
+    return () => {
+      unsubscribeFrame();
+      unsubscribeEvent();
+    };
+  }, []);
 
   const handleTimeRangeChange = (range) => {
     if (typeof range === "string") {
@@ -125,7 +152,11 @@ function Dashboard() {
 
             {/* Video player */}
             <div className="mb-4">
-              <Livestream />
+              <Livestream
+                currentFrame={currentFrame}
+                frameBuffer={frameBuffer}
+                maxBufferSize={MAX_BUFFER_SIZE}
+              />
             </div>
 
             {/* Video info section */}

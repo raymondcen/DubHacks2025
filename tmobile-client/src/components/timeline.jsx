@@ -19,7 +19,7 @@ function Timeline({ onTimeRangeChange }) {
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Timeline</h2>
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -28,6 +28,7 @@ function Timeline({ onTimeRangeChange }) {
           </svg>
         </div>
       </div>
+      
       {/* Quick range buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
         {intervals.map((range) => (
