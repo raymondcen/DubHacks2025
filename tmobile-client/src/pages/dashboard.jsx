@@ -1,19 +1,15 @@
 import { useState } from 'react';
 import Logs from '../components/logs';
 import Summary from '../components/summary';
+import Timeline from '../components/timeline';
 
-function Views() {
-    const [timeRange, setTimeRange] = useState('Last 24 hours');
+function Dashboard() {
+    const [timeRange, setTimeRange] = useState('24h');
 
   const handleTimeRangeChange = (range) => {
     if (typeof range === 'string') {
-      const rangeLabels = {
-        '1h': 'Last hour',
-        '6h': 'Last 6 hours',
-        '24h': 'Last 24 hours',
-      };
-      setTimeRange(rangeLabels[range] || range);
-    };
+      setTimeRange(range);
+    }
   };
 
   return (
@@ -44,7 +40,10 @@ function Views() {
         <div className="flex gap-6">
           {/* Left side - Video player and event summary (70% width) */}
           <div className="flex-1" style={{ maxWidth: '70%' }}>
-
+            {/* Timeline controls */}
+            <div className="mb-6">
+              <Timeline onTimeRangeChange={handleTimeRangeChange} />
+            </div>
             
             {/* Video info section */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
