@@ -1,11 +1,11 @@
 /**********************************
- * 
+ *
  * Single Web Socket instance to get data from
  * Raspberry Pi 5
- * 
+ *
  **********************************/
 
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 const listeners = { frame: [], event: [] };
 const PiUrl = import.meta.env.VITE_PI_IPADDR;
@@ -18,19 +18,29 @@ export function initWebSocket(url = ServerAddr) {
   if (socket) {
     return null;
   }
-  socket = io(
-    url,
-    {
-      transports: ["websocket"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: ReconnectionDelay_ms
-    }
-  );
+  socket = io(ServerAddr, {
+    transports: ["websocket"],
+    reconnectionAttempts: 5,
+    timeout: ConnectionTimeout_ms,
+    reconnectionDelay: ReconnectionDelay_ms,
+  });
+  socket.on("connect_error", (error) => {
+    console.log(`[Client]: Failed to connect, ${error}`);
+    notifyStatus({
+      connected: false,
+      message: "Failed to connect to Raspberry Pi",
+    });
+  });
   socket.on("connect", () => {
     console.log(`[Client]: Connected ${socket.id}`);
+    notifyStatus({ connected: true, message: "Connected to Raspberry Pi" });
   });
   socket.on("disconnect", () => {
     console.log(`[Client]: Disconnected`);
+    notifyStatus({
+      connected: false,
+      message: "Disconnected from Raspberry Pi",
+    });
   });
   socket.onAny((event, data) => {
     if (listeners[event]) {
@@ -40,9 +50,16 @@ export function initWebSocket(url = ServerAddr) {
   return socket;
 }
 
+export function statusUpdates(callback) {
+  statusListeners.push(callback);
+
+  return () => {
+    statusListeners = statusListeners.filter((cb) => cb !== callback);
+  };
+}
+
 export function subscribe(eventType, callback) {
-  if (!listeners[eventType]) 
-    listeners[eventType] = [];
+  if (!listeners[eventType]) listeners[eventType] = [];
   listeners[eventType].push(callback);
 
   // Ensure socket listens to that event

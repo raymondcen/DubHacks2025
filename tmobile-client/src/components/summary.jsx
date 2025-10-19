@@ -1,186 +1,303 @@
-import { useState, useEffect } from 'react';
-import { initWebSocket, subscribe } from '../context/connection';
-import { notifyEvent } from '../utils/notifications';
+import { useState, useEffect } from "react";
+import { initWebSocket, subscribe } from "../context/connection";
+import { notifyEvent } from "../utils/notifications";
 
 const testSummary = [
-    { id: 1, type: 'motion', time: '2:30 PM', description: 'Motion detected at front door', severity: 'low', rawData: { eventType: 'motion', timestamp: '2025-10-18 14:30:00', confidence: 0.85 } },
-    { id: 2, type: 'person', time: '2:45 PM', description: 'Person detected', severity: 'medium', rawData: { eventType: 'person', timestamp: '2025-10-18 14:45:00', confidence: 0.92 } },
-    { id: 3, type: 'package', time: '3:15 PM', description: 'Package delivery detected', severity: 'medium', rawData: { eventType: 'package', timestamp: '2025-10-18 15:15:00', confidence: 0.88 } },
-    { id: 4, type: 'motion', time: '4:20 PM', description: 'Motion detected near driveway', severity: 'low', rawData: { eventType: 'motion', timestamp: '2025-10-18 16:20:00', confidence: 0.78 } },
+  {
+    id: 1,
+    type: "motion",
+    time: "2:30 PM",
+    description: "Motion detected at front door",
+    severity: "low",
+    rawData: {
+      eventType: "motion",
+      timestamp: "2025-10-18 14:30:00",
+      confidence: 0.85,
+    },
+  },
+  {
+    id: 2,
+    type: "person",
+    time: "2:45 PM",
+    description: "Person detected",
+    severity: "medium",
+    rawData: {
+      eventType: "person",
+      timestamp: "2025-10-18 14:45:00",
+      confidence: 0.92,
+    },
+  },
+  {
+    id: 3,
+    type: "package",
+    time: "3:15 PM",
+    description: "Package delivery detected",
+    severity: "medium",
+    rawData: {
+      eventType: "package",
+      timestamp: "2025-10-18 15:15:00",
+      confidence: 0.88,
+    },
+  },
+  {
+    id: 4,
+    type: "motion",
+    time: "4:20 PM",
+    description: "Motion detected near driveway",
+    severity: "low",
+    rawData: {
+      eventType: "motion",
+      timestamp: "2025-10-18 16:20:00",
+      confidence: 0.78,
+    },
+  },
 ];
 
 function Summary({ timeRange }) {
-    const [events, setEvents] = useState(testSummary);
-    const [expandedEventId, setExpandedEventId] = useState(null);
+  const [events, setEvents] = useState(testSummary);
+  const [expandedEventId, setExpandedEventId] = useState(null);
 
-    useEffect(() => {
-        initWebSocket();
-        const unsubscribe = subscribe('event', (payload) => {
-            // Add new event to the beginning of the list
-            setEvents((prevEvents) => {
-                const newEvent = {
-                    id: Date.now(),
-                    type: payload.eventType || 'motion',
-                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-                    description: payload.description || payload.message || 'Event detected',
-                    severity: payload.severity || 'low',
-                    rawData: payload // Store the full Raspberry Pi output
-                };
+  useEffect(() => {
+    initWebSocket();
+    const unsubscribe = subscribe("event", (payload) => {
+      // Add new event to the beginning of the list
+      setEvents((prevEvents) => {
+        const newEvent = {
+          id: Date.now(),
+          type: payload.eventType || "motion",
+          time: new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+          description:
+            payload.description || payload.message || "Event detected",
+          severity: payload.severity || "low",
+          rawData: payload, // Store the full Raspberry Pi output
+        };
 
-                // Send SMS notification for medium/high severity events
-                notifyEvent(newEvent);
+        // Send SMS notification for medium/high severity events
+        notifyEvent(newEvent);
 
-                return [newEvent, ...prevEvents];
-            });
-        });
+        return [newEvent, ...prevEvents];
+      });
+    });
 
-        return () => unsubscribe();
-    }, []);
+    return () => unsubscribe();
+  }, []);
 
-    const toggleEventDetails = (eventId) => {
-        setExpandedEventId(expandedEventId === eventId ? null : eventId);
-    };
+  const toggleEventDetails = (eventId) => {
+    setExpandedEventId(expandedEventId === eventId ? null : eventId);
+  };
 
-    const getEventIcon = (type) => {
-        switch (type) {
-            case 'motion':
-                return (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                );
-            case 'person':
-                return (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                );
-            case 'package':
-                return (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                );
-            default:
-                return (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                );
-        }
-    };
+  const getEventIcon = (type) => {
+    switch (type) {
+      case "motion":
+        return (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+        );
+      case "person":
+        return (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+        );
+      case "package":
+        return (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
+        );
+      default:
+        return (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        );
+    }
+  };
 
-    const getSeverityColor = (severity) => {
-        switch (severity) {
-            case 'low':
-                return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'medium':
-                return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'high':
-                return 'bg-red-100 text-red-700 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-700 border-gray-200';
-        }
-    };
-    
-    return (
-        <>
-        <div className="mt-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case "low":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "high":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  return (
+    <>
+      <div className="mt-6 bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Event Summary</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Event Summary
+            </h2>
             <span className="text-sm text-gray-500">
-                {timeRange || 'Last 24 hours'}
+              {timeRange || "Last 24 hours"}
             </span>
-            </div>
-            <div className="mt-2 flex gap-4 text-sm">
+          </div>
+          <div className="mt-2 flex gap-4 text-sm">
             <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                <span className="text-gray-600">{events.filter(e => e.severity === 'high').length} High</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                <span className="text-gray-600">{events.filter(e => e.severity === 'medium').length} Medium</span>
+              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+              <span className="text-gray-600">
+                {events.filter((e) => e.severity === "high").length} High
+              </span>
             </div>
             <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                <span className="text-gray-600">{events.filter(e => e.severity === 'low').length} Low</span>
+              <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+              <span className="text-gray-600">
+                {events.filter((e) => e.severity === "medium").length} Medium
+              </span>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-600">
+                {events.filter((e) => e.severity === "low").length} Low
+              </span>
             </div>
+          </div>
         </div>
 
         <div className="p-4">
-            <div className="space-y-3">
+          <div className="space-y-3">
             {events.map((event) => {
-                const isExpanded = expandedEventId === event.id;
-                return (
+              const isExpanded = expandedEventId === event.id;
+              return (
                 <div
-                key={event.id}
-                className={`rounded-lg border ${getSeverityColor(event.severity)} overflow-hidden transition-all`}
+                  key={event.id}
+                  className={`rounded-lg border ${getSeverityColor(
+                    event.severity
+                  )} overflow-hidden transition-all`}
                 >
-                {/* Event Header */}
-                <div className="flex items-start gap-3 p-3">
+                  {/* Event Header */}
+                  <div className="flex items-start gap-3 p-3">
                     <div className="flex-shrink-0 mt-0.5">
-                        {getEventIcon(event.type)}
+                      {getEventIcon(event.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{event.description}</p>
-                        <p className="text-xs mt-1 opacity-75">{event.time}</p>
+                      <p className="text-sm font-medium">{event.description}</p>
+                      <p className="text-xs mt-1 opacity-75">{event.time}</p>
                     </div>
                     <button
-                        onClick={() => toggleEventDetails(event.id)}
-                        className="flex-shrink-0 text-xs font-medium hover:underline flex items-center gap-1"
+                      onClick={() => toggleEventDetails(event.id)}
+                      className="flex-shrink-0 text-xs font-medium hover:underline flex items-center gap-1"
                     >
-                        {isExpanded ? 'Hide' : 'View'}
-                        <svg
-                            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                      {isExpanded ? "Hide" : "View"}
+                      <svg
+                        className={`w-4 h-4 transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
                     </button>
-                </div>
+                  </div>
 
-                {/* Expanded Details */}
-                {isExpanded && (
+                  {/* Expanded Details */}
+                  {isExpanded && (
                     <div className="border-t border-current border-opacity-20 bg-white bg-opacity-50 p-4">
-                        <div className="space-y-3">
-                            {/* Event Metadata */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <h4 className="text-xs font-semibold opacity-75 mb-1">Event Type</h4>
-                                    <p className="text-sm font-medium capitalize">{event.type}</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-xs font-semibold opacity-75 mb-1">Severity</h4>
-                                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getSeverityColor(event.severity)}`}>
-                                        {event.severity.toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Raspberry Pi Output */}
-                            <div>
-                                <h4 className="text-xs font-semibold opacity-75 mb-2">Raspberry Pi Output</h4>
-                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-xs text-gray-700 font-mono break-all">
-{JSON.stringify(event.rawData)}
-                                    </p>
-                                </div>
-                            </div>
+                      <div className="space-y-3">
+                        {/* Event Metadata */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="text-xs font-semibold opacity-75 mb-1">
+                              Event Type
+                            </h4>
+                            <p className="text-sm font-medium capitalize">
+                              {event.type}
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-semibold opacity-75 mb-1">
+                              Severity
+                            </h4>
+                            <span
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${getSeverityColor(
+                                event.severity
+                              )}`}
+                            >
+                              {event.severity.toUpperCase()}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Raspberry Pi Output */}
+                        <div>
+                          <h4 className="text-xs font-semibold opacity-75 mb-2">
+                            Raspberry Pi Output
+                          </h4>
+                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                            <p className="text-xs text-gray-700 font-mono break-all">
+                              {JSON.stringify(event.rawData)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                )}
+                  )}
                 </div>
-                );
+              );
             })}
-            </div>
+          </div>
         </div>
-        </div>
-        </>
-    );
+      </div>
+    </>
+  );
 }
 
 export default Summary;

@@ -74,18 +74,15 @@ function Dashboard() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    // Simulate api fetching events
-    // setEvents(testEvents);
-
     initWebSocket();
 
-    // const unsubscribe = ( "event", (payload)  => {
-    //   console.log("Received event: ", payload);
-    //   setEvents( (prev) => [...prev, payload] );
-    // });
-    // return () => {
-    //   unsubscribe();
-    // };
+    const unsubscribe = ( "event", (payload)  => {
+      console.log("Received event: ", payload);
+      setEvents( (prev) => [...prev, payload] );
+    });
+    return () => {
+      unsubscribe();
+    };
   });
 
   const handleTimeRangeChange = (range) => {
@@ -104,7 +101,9 @@ function Dashboard() {
               <img src={logo} alt="Logo" className="h-20 w-20 object-contain" />
               <div>
                 {/* Title */}
-                <h1 className="text-xl font-bold text-gray-900">DubBetter Ring</h1>
+                <h1 className="text-xl font-bold text-gray-900">
+                  DubBetter Ring
+                </h1>
                 {/* Device */}
                 <p className="text-sm text-gray-500">Camera</p>
               </div>
