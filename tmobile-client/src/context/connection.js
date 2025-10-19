@@ -7,9 +7,10 @@
 
 let socket = null;
 const listeners = { frame: [], event: [] };
-const PiUrl = "TODO: add url when done";
+const PiUrl = import.meta.env.VITE_PI_IPADDR;
+const Port = 5000;
 
-export function initWebSocket(url = `ws:${PiUrl}`) {
+export function initWebSocket(url = `ws:${PiUrl}:${Port}/ws`) {
   if (!socket) {
     socket = new WebSocket(url);
 
@@ -19,14 +20,14 @@ export function initWebSocket(url = `ws:${PiUrl}`) {
 
     socket.onmessage = (msg) => {
       try {
-        // Strip SocketIO prefix (if using Flask-SocketIO)
-        const payload = JSON.parse(msg.data.replace(/^42/, ""));
+        const payload = JSON.parse(msg.data);
 
         // Dispatch to listeners by type
         if (payload.type && listeners[payload.type]) {
           listeners[payload.type].forEach((cb) => cb(payload));
         }
-      } catch (err) {
+      }
+      catch (err) {
         console.error("Failed to parse WebSocket message:", err);
       }
     };
@@ -42,4 +43,13 @@ export function subscribe(type, callback) {
     // Unsubscribe function
     listeners[type] = listeners[type].filter((cb) => cb !== callback);
   };
+}
+
+export function sendMessage(msg) {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(msg));
+  }
+  else {
+    console.log("socket not ready");
+  }
 }
