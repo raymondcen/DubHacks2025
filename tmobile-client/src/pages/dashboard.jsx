@@ -8,19 +8,37 @@ import logo from "../assets/file.svg";
 
 function Dashboard() {
   const [timeRange, setTimeRange] = useState("24h");
-  const [events, setEvents] = useState([]);
-  const [frames, setFrames] = useState([]);
+  const [currentFrame, setCurrentFrame] = useState(null);
+  const [frameBuffer, setFrameBuffer] = useState([]);
+  const MAX_BUFFER_SIZE = 20;
 
   useEffect(() => {
-    const unsubscribeFrames = subscribe("frame", (image) => {
-      if (image) {
-        setFrames((prev) => [...prev.slice(-10), image]);
-      }
+    initWebSocket();
+
+    // Subscribe to frame events from Raspberry Pi
+    const unsubscribeFrame = subscribe("frame", (frameData) => {
+      if (!frameData) return;
+
+      // Extract the image string from the frame data object
+      const imageData = frameData.image || frameData;
+
+      // Update the buffer - keep only the last 20 frames
+      setFrameBuffer((prev) => {
+        const newBuffer = [...prev, imageData];
+        // Keep only the last 20 frames
+        if (newBuffer.length > MAX_BUFFER_SIZE) {
+          return newBuffer.slice(newBuffer.length - MAX_BUFFER_SIZE);
+        }
+        return newBuffer;
+      });
+      // Update current frame
+      setCurrentFrame(imageData);
     });
+
     return () => {
-      unsubscribeFrames();
+      unsubscribeFrame();
     };
-  });
+  }, []);
 
   const handleTimeRangeChange = (range) => {
     if (typeof range === "string") {
@@ -138,7 +156,6 @@ function Dashboard() {
             {/* Event Summary */}
             <Summary
               timeRange={timeRange}
-              events={events.length == 0 ? [] : events}
             />
           </div>
 

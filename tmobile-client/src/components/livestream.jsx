@@ -17,7 +17,7 @@ function Livestream({ currentFrame, frameBuffer, maxBufferSize }) {
     <div className="w-full aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
       {/* Camera feed or placeholder */}
       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-        {currentFrame && isPlaying ? (
+        {currentFrame ? (
           <img
             src={currentFrame}
             alt="Live camera feed"
@@ -32,7 +32,6 @@ function Livestream({ currentFrame, frameBuffer, maxBufferSize }) {
             </div>
             <p className="text-gray-400 text-sm">Camera Feed</p>
             <p className="text-gray-500 text-xs mt-1">
-              {isConnected ? 'Paused' : 'Waiting for connection...'}
             </p>
           </div>
         )}

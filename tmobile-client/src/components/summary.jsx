@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 
-function Summary({ timeRange, events }) {
+function Summary({ timeRange }) {
+  const [events, setEvents] = useState([]);
+
   const [expandedEventId, setExpandedEventId] = useState(null);
   const toggleEventDetails = (eventId) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
