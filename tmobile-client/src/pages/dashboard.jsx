@@ -18,7 +18,6 @@ function Dashboard() {
       }
     });
     return () => {
-      unsubscribeEvents();
       unsubscribeFrames();
     };
   });
@@ -62,7 +61,11 @@ function Dashboard() {
 
             {/* Video player */}
             <div className="mb-4">
-              <Livestream frame={frames[frames.length - 1]} />
+              <Livestream
+                currentFrame={currentFrame}
+                frameBuffer={frameBuffer}
+                maxBufferSize={MAX_BUFFER_SIZE}
+              />
             </div>
 
             {/* Video info section */}

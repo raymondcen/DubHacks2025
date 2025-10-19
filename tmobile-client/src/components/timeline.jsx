@@ -38,6 +38,7 @@ function Timeline({ onTimeRangeChange }) {
           </svg>
         </div>
       </div>
+      
       {/* Quick range buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
         {intervals.map((range) => (
