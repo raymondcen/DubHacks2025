@@ -101,7 +101,7 @@ function Dashboard() {
         <div className="max-w-full px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo" className="h-30 w-30 object-contain" />
+              <img src={logo} alt="Logo" className="h-20 w-20 object-contain" />
               <div>
                 {/* Title */}
                 <h1 className="text-xl font-bold text-gray-900">DubBetter Ring</h1>
