@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { initWebSocket, subscribe } from '../context/connection';
 
 // const event = {
 //     id: Number,
@@ -19,40 +20,49 @@ const testEvents = [
     { id: 10, timestamp: '2025-10-18 17:00:12', message: 'Recording saved to cloud', category: 'storage' },
 ];
 
-function Logs() {
-    const [logs, setLogs] = useState([]);
+function Events() {
+    const [events, setEvents] = useState([]);
 
     useEffect(() => {
+        // initWebSocket();
         // Simulate api fetching events
-        setLogs(testEvents);
+        setEvents(testEvents);
+
+        // const unsubscribe = ( "event", (payload)  => {
+        //   console.log("Received event: ", payload);
+        //   setEvents( (prev) => [...prev, payload] );
+        // });
+        // return () => {
+        //   unsubscribe();
+        // };
     }, []);
 
     return (
         <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Activity Logs</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Activity Events</h2>
       </div>
 
-      {/* Logs list */}
+      {/* Events list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {logs.length === 0 ? (
+        {events.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>No logs to display</p>
+            <p>No events to display</p>
           </div>
         ) : (
-          logs.map((log) => (
+          events.map((event) => (
             <div
-              key={log.id}
+              key={event.id}
               className="p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors bg-gray-50"
             >
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-900 break-words">
-                    {log.message}
+                    {event.message}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {log.timestamp}
+                    {event.timestamp}
                   </p>
                 </div>
               </div>
@@ -63,10 +73,10 @@ function Logs() {
 
       {/* Footer with count */}
       <div className="p-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
-        Showing {logs.length} logs
+        Showing {events.length} events
       </div>
     </div>
   );
 }
 
-export default Logs;
+export default Events;

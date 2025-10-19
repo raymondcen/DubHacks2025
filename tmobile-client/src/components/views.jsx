@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Logs from './logs';
+import Events from './events';
 import Summary from './summary';
 
 function Views() {
@@ -81,10 +81,10 @@ function Views() {
             <Summary timeRange={timeRange} />
         </div>
 
-          {/* Right side - Logs panel */}
+          {/* Right side - Events panel */}
           <div className="w-full" style={{ maxWidth: '30%' }}>
             <div className="sticky top-24">
-              <Logs />
+              <Events />
             </div>
           </div>
         </div>
