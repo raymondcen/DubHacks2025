@@ -5,51 +5,61 @@
  * 
  **********************************/
 
-let socket = null;
+import { io } from 'socket.io-client';
+
 const listeners = { frame: [], event: [] };
 const PiUrl = import.meta.env.VITE_PI_IPADDR;
 const Port = 5000;
+const ServerAddr = `http://${PiUrl}:${Port}`;
+const ReconnectionDelay_ms = 1000;
+let socket = null;
 
-export function initWebSocket(url = `ws:${PiUrl}:${Port}/ws`) {
-  if (!socket) {
-    socket = new WebSocket(url);
-
-    // TODO: Stretch goal is to type in the raspberry pi IP before connecting
-    socket.onopen = () => console.log("Connected");
-    socket.onclose = () => console.log("Disconnected");
-
-    socket.onmessage = (msg) => {
-      try {
-        const payload = JSON.parse(msg.data);
-
-        // Dispatch to listeners by type
-        if (payload.type && listeners[payload.type]) {
-          listeners[payload.type].forEach((cb) => cb(payload));
-        }
-      }
-      catch (err) {
-        console.error("Failed to parse WebSocket message:", err);
-      }
-    };
+export function initWebSocket(url = ServerAddr) {
+  if (socket) {
+    return null;
   }
+  socket = io(
+    url,
+    {
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: ReconnectionDelay_ms
+    }
+  );
+  socket.on("connect", () => {
+    console.log(`[Client]: Connected ${socket.id}`);
+  });
+  socket.on("disconnect", () => {
+    console.log(`[Client]: Disconnected`);
+  });
+  socket.onAny((event, data) => {
+    if (listeners[event]) {
+      listeners[event].forEach((cb) => cb(data));
+    }
+  });
   return socket;
 }
 
-export function subscribe(type, callback) {
-  if (!listeners[type]) listeners[type] = [];
-  listeners[type].push(callback);
+export function subscribe(eventType, callback) {
+  if (!listeners[eventType]) 
+    listeners[eventType] = [];
+  listeners[eventType].push(callback);
 
+  // Ensure socket listens to that event
+  const sock = initWebSocket();
+  sock.on(eventType, callback);
+
+  // Return unsubscribe function
   return () => {
-    // Unsubscribe function
-    listeners[type] = listeners[type].filter((cb) => cb !== callback);
+    listeners[eventType] = listeners[eventType].filter((cb) => cb !== callback);
+    sock.off(eventType, callback);
   };
 }
 
-export function sendMessage(msg) {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(msg));
-  }
-  else {
-    console.log("socket not ready");
+export function sendMessage(type, data) {
+  if (socket && socket.connected) {
+    socket.emit(type, data);
+  } else {
+    console.warn("[Client]: Socket not connected");
   }
 }
