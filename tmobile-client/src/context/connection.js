@@ -10,12 +10,21 @@ const listeners = { frame: [], event: [] };
 const PiUrl = import.meta.env.VITE_PI_IPADDR;
 const Port = 5000;
 
-export function initWebSocket(url = `ws:${PiUrl}:${Port}/ws`) {
+export function initWebSocket(ipAddress = PiUrl, onSuccess = null, onError = null) {
   if (!socket) {
+    const url = `ws://${ipAddress}:${Port}/ws`;
     socket = new WebSocket(url);
 
-    // TODO: Stretch goal is to type in the raspberry pi IP before connecting
-    socket.onopen = () => console.log("Connected");
+    socket.onopen = () => {
+      console.log("Connected");
+      if (onSuccess) onSuccess();
+    };
+
+    socket.onerror = (error) => {
+      console.error("Connection error:", error);
+      if (onError) onError(error);
+    };
+
     socket.onclose = () => console.log("Disconnected");
 
     socket.onmessage = (msg) => {
@@ -52,4 +61,12 @@ export function sendMessage(msg) {
   else {
     console.log("socket not ready");
   }
+}
+
+export function getSocket() {
+  return socket;
+}
+
+export function isConnected() {
+  return socket && socket.readyState === WebSocket.OPEN;
 }
