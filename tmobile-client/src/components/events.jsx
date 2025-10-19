@@ -1,4 +1,23 @@
-function Events({ events }) {
+import { useState, useEffect } from "react";
+import { initWebSocket, subscribe } from "../context/connection";
+
+function Events() {
+  const [events, setEvents] = useState([]);
+
+  useEffect( () => {
+    initWebSocket();
+
+    const unsubscribe = subscribe("event", (payload) => {
+      if (payload) {
+        console.log(payload);
+        setEvents( (prev) => [...prev, payload]);
+      }
+    });
+    return () => {
+      unsubscribe();
+    }
+  });
+
   return (
     <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
       {/* Header */}

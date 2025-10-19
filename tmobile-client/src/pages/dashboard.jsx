@@ -12,14 +12,6 @@ function Dashboard() {
   const [frames, setFrames] = useState([]);
 
   useEffect(() => {
-    initWebSocket();
-
-    const unsubscribeEvents = subscribe("event", (payload) => {
-      if (payload) {
-        console.log("Received event: ", payload);
-        setEvents((prev) => [...prev, payload]);
-      }
-    });
     const unsubscribeFrames = subscribe("frame", (image) => {
       if (image) {
         setFrames((prev) => [...prev.slice(-10), image]);
@@ -29,7 +21,7 @@ function Dashboard() {
       unsubscribeEvents();
       unsubscribeFrames();
     };
-  }, []);
+  });
 
   const handleTimeRangeChange = (range) => {
     if (typeof range === "string") {
@@ -150,7 +142,7 @@ function Dashboard() {
           {/* Right side - Events panel */}
           <div className="w-full" style={{ maxWidth: "30%" }}>
             <div className="sticky top-24">
-              <Events events={events.length == 0 ? [] : events} />
+              <Events />
             </div>
           </div>
         </div>
