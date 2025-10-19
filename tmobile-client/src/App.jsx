@@ -1,6 +1,6 @@
-import Views from './components/views'
+import Dashboard from './pages/dashboard'
 function App() {
-  return <Views />
+  return <Dashboard />
 }
 
 export default App

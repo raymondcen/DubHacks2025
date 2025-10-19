@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Logs from './logs';
-import Summary from './summary';
+import Logs from '../components/logs';
+import Summary from '../components/summary';
 
 function Views() {
     const [timeRange, setTimeRange] = useState('Last 24 hours');
@@ -93,4 +93,4 @@ function Views() {
   );
 }
 
-export default Views;
+export default Dashboard;
