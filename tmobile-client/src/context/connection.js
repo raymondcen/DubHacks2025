@@ -8,18 +8,18 @@
 import { io } from 'socket.io-client';
 
 const listeners = { frame: [], event: [] };
-const PiUrl = import.meta.env.VITE_PI_IPADDR;
-const Port = 5000;
-const ServerAddr = `http://${PiUrl}:${Port}`;
 const ReconnectionDelay_ms = 1000;
 let socket = null;
 
-export function initWebSocket(url = ServerAddr) {
+export function initWebSocket(PiUrl) {
+  const Port = 5000;
+  const ServerAddr = `http://${PiUrl}:${Port}`;
+
   if (socket) {
     return null;
   }
   socket = io(
-    url,
+    ServerAddr,
     {
       transports: ["websocket"],
       reconnectionAttempts: 5,
@@ -62,4 +62,12 @@ export function sendMessage(type, data) {
   } else {
     console.warn("[Client]: Socket not connected");
   }
+}
+
+export function getSocket() {
+  return socket;
+}
+
+export function isConnected() {
+  return socket && socket.readyState === WebSocket.OPEN;
 }
