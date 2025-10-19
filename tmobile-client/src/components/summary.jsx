@@ -9,7 +9,7 @@ function Summary({ timeRange }) {
   };
 
   useEffect( () => {
-    initWebSocket("192.168.50.126");
+    initWebSocket();
 
     const unsubscribe = subscribe("event", (payload) => {
       console.log(payload);
