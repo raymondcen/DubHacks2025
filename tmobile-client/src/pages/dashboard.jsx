@@ -27,7 +27,7 @@ function Dashboard() {
               </div>
               <div>
                 {/* Title */}
-                <h1 className="text-xl font-bold text-gray-900">TITLE</h1>
+                <h1 className="text-xl font-bold text-gray-900">DubBetter Ring</h1>
                 {/* Device */}
                 <p className="text-sm text-gray-500">Camera</p>
               </div>
