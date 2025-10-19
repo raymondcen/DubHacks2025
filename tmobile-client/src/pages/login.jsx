@@ -1,12 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { initWebSocket } from '../context/connection';
+import { initWebSocket, statusUpdates } from '../context/connection';
 
 function Login() {
   const [ipAddress, setIpAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect( () => {
+    const unsubscribe = statusUpdates((status) => {
+      setLoading(false);
+      if (status.connected) {
+        localStorage.setItem("piIpAddress", ipAddress);
+        navigate("/dashboard");
+      } else {
+        setError(status.message); // Show error from connect_error
+      }
+    });
+
+    return () => unsubscribe();
+  }, [ipAddress, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -20,23 +34,9 @@ function Login() {
       setLoading(false);
       return;
     }
-
-    // Try to connect to the Raspberry Pi
-    initWebSocket(
-      ipAddress,
-      () => {
-        // Success callback
-        setLoading(false);
-        localStorage.setItem('piIpAddress', ipAddress);
-        navigate('/dashboard');
-      },
-      (err) => {
-        // Error callback
-        setLoading(false);
-        setError('Failed to connect to Raspberry Pi. Please check the IP address.');
-        console.error('Connection error:', err);
-      }
-    );
+    else {
+      initWebSocket(ipAddress);
+    }
   };
 
   return (
